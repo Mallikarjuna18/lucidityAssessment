@@ -154,6 +154,10 @@ Once the EKS cluster is created, update your local kubeconfig:
 ```bash
 aws eks update-kubeconfig --region <aws-region> --name <cluster-name>
 ```
+```bash
+kubectl get nodes
+```
+<img width="864" height="106" alt="Screenshot 2026-08-06 at 9 35 10 AM" src="https://github.com/user-attachments/assets/6549443d-fa31-4be3-ac40-67ea20581552" />
 
 ---
 
@@ -208,10 +212,11 @@ Without Cluster Autoscaler (or Karpenter), the node count remains fixed at the d
 
 ```bash
 kubectl get ns
-kubectl get pods -A
-kubectl get svc -A
-kubectl get deployment -A
+kubectl get pods -n kube-system
+kubectl get pods -n monitoring
 ```
+<img width="1260" height="530" alt="image" src="https://github.com/user-attachments/assets/6db11edf-217b-4d22-b397-6ae84239336e" />
+
 
 Once healthy, the cluster is ready to deploy workloads, allow traffic, and serve production.
 
@@ -225,11 +230,17 @@ kubectl create namespace lucidity
 
 # Label for Istio sidecar injection
 kubectl label namespace lucidity istio-injection=enabled
+
+#verify
+kubectl get ns
 ```
 
 ---
 
 ## 3. 📦 Deploy the Application using Helm
+
+I have added what are the config files used for helm creation in kubeconfigfile folder.
+We will be deploying a deployment, service, hpa and istio-ingress.
 
 The Helm chart packages all Kubernetes resources required by the application, allowing it to be deployed, upgraded, and rolled back with a single command.
 
