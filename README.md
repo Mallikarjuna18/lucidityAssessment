@@ -1,1 +1,333 @@
-# lucidityAssessment
+# 🚀 Lucidity Assessment — Cloud-Native Hello World on AWS EKS
+
+> A production-grade deployment of a Python Flask application on Amazon EKS, complete with autoscaling, service mesh, observability, and infrastructure-as-code.
+
+---
+
+## 📁 Repository Structure
+
+```
+.
+├── app/
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── helm-basedtf/
+│   ├── aws-lb.tf
+│   ├── clusterAutoScaler.tf
+│   ├── istio.tf
+│   ├── metricServer.tf
+│   └── prometheus.tf
+│
+├── kubeconfigfile/
+│   ├── helloWorld-helm/
+│   ├── app.yml
+│   ├── service.yml
+│   ├── hpa.yml
+│   └── istio-ingress.yml
+│
+├── iam/
+│
+├── main.tf
+├── vpc.tf
+├── subnet.tf
+├── eks-cluster.tf
+├── eks-nodes.tf
+├── route-table.tf
+├── nat.tf
+└── variables.tf
+```
+
+---
+
+## ✅ Prerequisites
+
+### AWS Permissions (ability to create and manage)
+
+| Service | Resources |
+|---|---|
+| Networking | VPC, Subnets, Internet Gateway, NAT Gateway, Route Tables |
+| Compute | EC2, Amazon EKS, Auto Scaling Groups |
+| Load Balancing | Elastic Load Balancers (ALB/NLB) |
+| Security | IAM Roles & Policies |
+
+### Required Tools
+
+| Tool | Purpose |
+|---|---|
+| `aws` CLI | AWS authentication and cluster config |
+| `terraform` | Infrastructure provisioning |
+| `kubectl` | Kubernetes cluster management |
+| `helm` | Kubernetes application packaging |
+| `docker` | Container image build and push |
+| `git` | Source control |
+
+---
+
+## 🔧 Setup
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Mallikarjuna18/lucidityAssessment.git
+cd lucidityAssessment/app
+```
+
+> This is the basic Python Flask app — Hello World!
+
+---
+
+## 1. 🐳 Image Generation
+
+```bash
+# Login to Docker Hub
+docker login -u <USER-NAME>
+# (enter password when prompted)
+
+# Build the application image
+docker build -t hello-world-app .
+
+# Verify the image
+docker images
+
+# Run the container locally
+docker run -d -p 80:8080 --name hello-world hello-world-app
+# Verify: docker ps, check port 80, and confirm web access
+
+# Tag the image
+docker tag hello-world-app malli183/helloworld:v1.0
+
+# Push to Docker Hub
+docker push <USER-NAME>/helloworld:v1.0
+# Verify in Docker registry
+```
+
+---
+
+## 2. 🏗️ Infrastructure & Cluster Creation
+
+```bash
+cd ../
+```
+
+### Why is Terraform Split into Two Phases?
+
+The Terraform files are intentionally split to avoid a race condition where the Helm provider attempts to install Kubernetes resources before the EKS control plane and worker nodes are fully accessible.
+
+The Helm provider requires a healthy Kubernetes API server and active worker nodes before deploying charts. Provisioning infrastructure first makes the deployment deterministic and easier to troubleshoot.
+
+#### Phase A — Core Infrastructure
+
+- VPC
+- Public Subnets
+- Internet Gateway
+- NAT Gateway
+- Route Tables
+- IAM Roles
+- Amazon EKS Cluster
+- Managed Node Groups
+
+#### Phase B — Platform Add-ons
+
+- Metrics Server
+- AWS Load Balancer Controller
+- Istio
+- Prometheus & Grafana
+- Cluster Autoscaler
+
+---
+
+### Phase A: Provision the Infrastructure
+
+```bash
+terraform init      # Initialise Terraform
+terraform validate  # Validate the configuration
+terraform plan      # Review the execution plan
+terraform apply     # Create the infrastructure
+```
+
+> ⏱️ **This may take 10–15 minutes.**
+
+Once the EKS cluster is created, update your local kubeconfig:
+
+```bash
+aws eks update-kubeconfig --region <aws-region> --name <cluster-name>
+```
+
+---
+
+### Phase B: Install Kubernetes Add-ons via Helm
+
+```bash
+mv helm-basedtf/* .
+
+terraform init      # Initialise Terraform
+terraform validate  # Validate the configuration
+terraform plan      # Review the execution plan
+terraform apply     # Install add-ons
+```
+
+This step installs:
+
+| Component | Purpose |
+|---|---|
+| **Metrics Server** | Provides CPU and Memory metrics required by HPA |
+| **AWS Load Balancer Controller** | Creates AWS ALB/NLB from Kubernetes Services and Ingress |
+| **Istio** | Service mesh for traffic management, security, and observability |
+| **Prometheus** | Metrics collection and monitoring |
+| **Cluster Autoscaler** | Automatically scales worker nodes based on pending pods |
+
+---
+
+### 📐 Cluster Autoscaler
+
+The EKS Managed Node Group defines the scaling boundaries:
+
+```
+Minimum Nodes : 2
+Desired Nodes : 2
+Maximum Nodes : 5
+```
+
+> **Important:** These values only define the scaling boundaries. Amazon EKS does **not** automatically increase or decrease worker nodes when pods become unschedulable.
+
+To enable automatic node scaling, a node provisioning component is required. This project uses **Cluster Autoscaler**, which:
+
+- Monitors the Kubernetes scheduler for pending (unschedulable) pods
+- Increases the desired capacity of the EKS Managed Node Group when additional nodes are needed
+- Removes underutilised nodes when they are no longer required (subject to scale-down policies)
+
+Without Cluster Autoscaler (or Karpenter), the node count remains fixed at the desired size even if the node group's maximum allows additional instances.
+
+> **Note:** Cluster Autoscaler respects the minimum and maximum limits on the EKS Managed Node Group and scales only within those boundaries.
+
+---
+
+### Verify the Cluster
+
+```bash
+kubectl get ns
+kubectl get pods -A
+kubectl get svc -A
+kubectl get deployment -A
+```
+
+Once healthy, the cluster is ready to deploy workloads, allow traffic, and serve production.
+
+---
+
+### Create and Label the Namespace
+
+```bash
+# Create namespace
+kubectl create namespace lucidity
+
+# Label for Istio sidecar injection
+kubectl label namespace lucidity istio-injection=enabled
+```
+
+---
+
+## 3. 📦 Deploy the Application using Helm
+
+The Helm chart packages all Kubernetes resources required by the application, allowing it to be deployed, upgraded, and rolled back with a single command.
+
+### Chart Structure
+
+```
+helloWorld-helm/
+├── Chart.yaml
+├── values.yaml
+└── templates/
+    ├── _helpers.tpl
+    ├── deployment.yml
+    ├── service.yml
+    ├── hpa.yml
+    └── istio-ingress.yml
+```
+
+---
+
+### Chart Components
+
+#### `Chart.yaml`
+Contains chart metadata: name, version, description, application version, and maintainer information.
+
+#### `values.yaml`
+Centralises all configurable parameters, allowing the same chart to be reused across environments without modifying templates.
+
+Configures:
+- Replica count
+- Docker image
+- Resource requests and limits
+- Service configuration
+- Horizontal Pod Autoscaler settings
+- Istio Gateway configuration
+
+#### Deployment
+Creates application Pods. Configures container image, replica count, resource requests/limits, labels, selectors, and image pull policy.
+
+#### Service
+Exposes the application internally within the cluster using a ClusterIP Service — the stable endpoint that routes traffic to application Pods.
+
+#### Horizontal Pod Autoscaler (HPA)
+Automatically scales the number of Pods based on CPU utilisation. Minimum replicas, maximum replicas, and target CPU utilisation are all configurable via `values.yaml`.
+
+#### Istio Gateway
+Configures the Istio Ingress Gateway to receive external HTTP traffic on port 80 — the entry point into the service mesh.
+
+#### Istio VirtualService
+Defines how incoming requests are routed:
+
+- Requests to `/hello`
+- are rewritten to `/`
+- and forwarded to the application's Kubernetes Service
+
+This allows the application to be accessed at:
+
+```
+http://<LoadBalancer-DNS>/hello
+```
+
+#### Helper Templates (`_helpers.tpl`)
+Contains reusable template functions for consistent resource naming across all manifests (application name, full resource name, common labels).
+
+---
+
+> The Helm chart makes the deployment portable, reusable, and easy to manage by packaging all required Kubernetes resources into a single deployable unit.
+
+---
+
+### Validate the Deployment
+
+```bash
+kubectl get all -n lucidity
+```
+
+### Access the Application
+
+```bash
+# Get the Istio Ingress Gateway external IP
+kubectl get svc -n istio-system
+```
+
+```
+http://<EXTERNAL-IP>/app
+```
+
+### Access Prometheus
+
+```bash
+kubectl get svc kube-prometheus-stack-prometheus -n monitoring
+```
+
+```
+http://<External-IP>:9090/
+```
+
+---
+
+## ✅ Application is Live!
+
+> **Oh wait — is it scaling?** Let's check! 👇
