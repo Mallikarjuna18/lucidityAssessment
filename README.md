@@ -346,3 +346,82 @@ http://<External-IP>:9090/
 ## ✅ Application is Live!
 
 > **Oh wait — is it scaling?** Let's check! 👇
+ # 1. Testing Horizontal Pod Autoscaler (HPA)
+
+To verify that the **Horizontal Pod Autoscaler (HPA)** is functioning correctly, I configured the target CPU utilization to **1%** in the Helm chart.
+
+A continuous stream of requests was then generated using a **BusyBox** pod to create CPU load on the application.
+
+As the CPU utilization exceeded the configured threshold, Kubernetes automatically increased the number of application replicas.
+
+The following screenshot shows the HPA scaling the application pods:
+
+<img width="1507" height="875" alt="HPA Scaling" src="https://github.com/user-attachments/assets/d9972ed8-194f-49a1-a7c1-f429af55a72a" />
+
+You can also verify the HPA using:
+
+```bash
+kubectl get hpa -n lucidity
+```
+
+Watch the pods scale in real time:
+
+```bash
+kubectl get pods -n lucidity -w
+<img width="1507" height="875" alt="Screenshot 2026-08-06 at 7 47 52 AM" src="https://github.com/user-attachments/assets/d9972ed8-194f-49a1-a7c1-f429af55a72a" />
+You can verify that pods are scaling.
+```
+# 6. Testing Cluster Autoscaler
+
+To verify the **Cluster Autoscaler**, I deployed a workload with CPU and memory requests that exceeded the available capacity of the existing worker nodes.
+
+Since Kubernetes could not schedule the new pods, they entered the **Pending** state.
+
+The Cluster Autoscaler detected these unschedulable pods and automatically increased the desired capacity of the Amazon EKS Managed Node Group by provisioning an additional EC2 worker node.
+
+The screenshot below shows a new worker node joining the cluster after the workload was deployed:
+
+<img width="1512" height="888" alt="Cluster Autoscaler" src="https://github.com/user-attachments/assets/8865fc13-86a4-49e8-8864-dc9994d50876" />
+
+You can verify the newly created worker node using:
+
+```bash
+kubectl get nodes
+```
+
+Watch nodes being added in real time:
+
+```bash
+kubectl get nodes -w
+```
+
+Verify the pending pods:
+
+```bash
+kubectl get pods -A
+```
+
+Verify the Cluster Autoscaler logs:
+
+```bash
+kubectl logs -n kube-system deployment/cluster-autoscaler -f
+```
+
+Once the workload is removed and node utilization falls below the configured threshold, the Cluster Autoscaler will automatically scale the node group back down (subject to the configured scale-down delay).
+
+This project demonstrates:
+
+- Infrastructure as Code with Terraform
+- Kubernetes application deployment
+- Helm chart development
+- Service Mesh with Istio
+- Monitoring with Prometheus & Grafana
+- Horizontal Pod Autoscaling
+- Cluster Autoscaling
+- AWS Load Balancer integration
+- Production-ready EKS architecture
+
+
+
+
+
