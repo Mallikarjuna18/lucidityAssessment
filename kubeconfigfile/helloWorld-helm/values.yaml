@@ -1,0 +1,33 @@
+namespace: lucidity
+
+replicaCount: 3
+
+image:
+  repository: malli183/helloworld
+  tag: "v1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+  limits:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 30
+
+istio:
+  enabled: true
+  gatewayNamespace: istio-system
+  gatewayName: platform-gateway

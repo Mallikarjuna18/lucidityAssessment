@@ -1,0 +1,12 @@
+.git/
+.gitignore
+
+README.md
+
+output.yaml
+
+index.yaml
+
+*.tgz
+
+.DS_Store
