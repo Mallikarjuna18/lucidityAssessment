@@ -342,6 +342,7 @@ Install the application:
 helm install my-app helloworld/lucidity-test \
   --namespace lucidity
 ```
+<img width="1177" height="206" alt="image" src="https://github.com/user-attachments/assets/35eaaf20-c1df-4bc2-8e77-483d27a6a814" />
 
 Verify the Helm release:
 
@@ -362,7 +363,6 @@ If you publish a newer chart version, upgrade using:
 ```bash
 helm upgrade my-app helloworld/lucidity-test -n lucidity
 ```
-<img width="1177" height="206" alt="image" src="https://github.com/user-attachments/assets/35eaaf20-c1df-4bc2-8e77-483d27a6a814" />
 
 ---
 
