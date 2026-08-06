@@ -1,4 +1,4 @@
-# 🚀 Lucidity Assessment — Cloud-Native Hello World on AWS EKS
+# Cloud-Native Hello World on AWS EKS
 
 > A production-grade deployment of a Python Flask application on Amazon EKS, complete with autoscaling, service mesh, observability, and infrastructure-as-code.
 
@@ -41,7 +41,7 @@
 
 ---
 
-## ✅ Prerequisites
+## Prerequisites
 
 ### AWS Permissions (ability to create and manage)
 
@@ -78,7 +78,7 @@ cd lucidityAssessment/app
 
 ---
 
-## 1. 🐳 Image Generation
+## 1. Image Generation
 
 ```bash
 # Login to Docker Hub
@@ -105,7 +105,7 @@ docker push <USER-NAME>/helloworld:v1.0
 
 ---
 
-## 2. 🏗️ Infrastructure & Cluster Creation
+## 2. Infrastructure & Cluster Creation
 
 ```bash
 cd ../
@@ -147,7 +147,7 @@ terraform plan      # Review the execution plan
 terraform apply     # Create the infrastructure
 ```
 
-> ⏱️ **This may take 10–15 minutes.**
+>  **This may take 10–15 minutes.**
 
 Once the EKS cluster is created, update your local kubeconfig:
 
@@ -184,7 +184,7 @@ This step installs:
 
 ---
 
-### 📐 Cluster Autoscaler
+### Cluster Autoscaler
 
 The EKS Managed Node Group defines the scaling boundaries:
 
@@ -237,7 +237,7 @@ kubectl get ns
 
 ---
 
-## 3. 📦 Deploy the Application using Helm
+## 3. Deploy the Application using Helm
 
 I have added what are the config files used for helm creation in kubeconfigfile folder.
 We will be deploying a deployment, service, hpa and istio-ingress.
@@ -312,11 +312,6 @@ Contains reusable template functions for consistent resource naming across all m
 
 ```bash
 helm repo add helloworld https://mallikarjuna18.github.io/helloWorldHelm
-```
-
-Update the local repository cache:
-
-```bash
 helm repo update
 ```
 
@@ -408,7 +403,7 @@ http://<External-IP>:9090/
 
 ---
 
-## ✅ Application is Live!
+## Application is Live!
 
 > **Oh wait — is it scaling?** Let's check! 👇
  # 1. Testing Horizontal Pod Autoscaler (HPA)
