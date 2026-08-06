@@ -416,8 +416,6 @@ As the CPU utilization exceeded the configured threshold, Kubernetes automatical
 
 The following screenshot shows the HPA scaling the application pods:
 
-<img width="1507" height="875" alt="HPA Scaling" src="https://github.com/user-attachments/assets/d9972ed8-194f-49a1-a7c1-f429af55a72a" />
-
 You can also verify the HPA using:
 
 ```bash
@@ -428,9 +426,10 @@ Watch the pods scale in real time:
 
 ```bash
 kubectl get pods -n lucidity -w
-<img width="1507" height="875" alt="Screenshot 2026-08-06 at 7 47 52 AM" src="https://github.com/user-attachments/assets/d9972ed8-194f-49a1-a7c1-f429af55a72a" />
-You can verify that pods are scaling.
 ```
+<img width="1507" height="875" alt="HPA Scaling" src="https://github.com/user-attachments/assets/d9972ed8-194f-49a1-a7c1-f429af55a72a" />
+You can verify that pods are scaling.
+
 # 6. Testing Cluster Autoscaler
 
 To verify the **Cluster Autoscaler**, I deployed a workload with CPU and memory requests that exceeded the available capacity of the existing worker nodes.
