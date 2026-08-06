@@ -308,6 +308,67 @@ Contains reusable template functions for consistent resource naming across all m
 
 > The Helm chart makes the deployment portable, reusable, and easy to manage by packaging all required Kubernetes resources into a single deployable unit.
 
+## Add the Helm Repository
+
+```bash
+helm repo add helloworld https://mallikarjuna18.github.io/helloWorldHelm
+```
+
+Update the local repository cache:
+
+```bash
+helm repo update
+```
+
+Verify that the chart is available:
+
+```bash
+helm search repo helloworld
+```
+
+Expected output:
+
+```text
+NAME                         CHART VERSION
+helloworld/lucidity-test     0.1.x
+```
+## Install the Helm Chart
+
+Create the application namespace (if it does not already exist):
+
+```bash
+kubectl create namespace lucidity
+kubectl label namespace lucidity istio-injection=enabled
+```
+
+Install the application:
+
+```bash
+helm install my-app helloworld/lucidity-test \
+  --namespace lucidity
+```
+
+Verify the Helm release:
+
+```bash
+helm list -n lucidity
+```
+
+Verify the deployed resources:
+
+```bash
+kubectl get all -n lucidity
+```
+
+## Upgrade the Application
+
+If you publish a newer chart version, upgrade using:
+
+```bash
+helm upgrade my-app helloworld/lucidity-test -n lucidity
+```
+<img width="1177" height="206" alt="image" src="https://github.com/user-attachments/assets/35eaaf20-c1df-4bc2-8e77-483d27a6a814" />
+
 ---
 
 ### Validate the Deployment
@@ -317,6 +378,10 @@ kubectl get all -n lucidity
 ```
 <img width="1503" height="478" alt="image" src="https://github.com/user-attachments/assets/3f60366f-2fe4-43b5-9dbf-3b0edcce9b0e" />
 
+also can be verified by 
+```bash
+helm list - A
+```
 
 ### Access the Application
 
