@@ -315,6 +315,8 @@ Contains reusable template functions for consistent resource naming across all m
 ```bash
 kubectl get all -n lucidity
 ```
+<img width="1503" height="478" alt="image" src="https://github.com/user-attachments/assets/3f60366f-2fe4-43b5-9dbf-3b0edcce9b0e" />
+
 
 ### Access the Application
 
@@ -326,6 +328,7 @@ kubectl get svc -n istio-system
 ```
 http://<EXTERNAL-IP>/app
 ```
+<img width="1503" height="478" alt="image" src="https://github.com/user-attachments/assets/60411ff4-a4b6-400e-8d95-11ba15fb31f1" />
 
 ### Access Prometheus
 
@@ -336,6 +339,7 @@ kubectl get svc kube-prometheus-stack-prometheus -n monitoring
 ```
 http://<External-IP>:9090/
 ```
+<img width="1501" height="835" alt="Screenshot 2026-08-05 at 11 22 47 PM" src="https://github.com/user-attachments/assets/c23a99bf-17be-42ed-92a6-d00ac8bd9de4" />
 
 ---
 
